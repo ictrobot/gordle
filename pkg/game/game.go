@@ -111,7 +111,8 @@ func (g *Game) Draw(s tcell.Screen) {
 		drawText(s, 0, y+3, "You won!", tcell.StyleDefault.Foreground(tcell.ColorGreen).Bold(true))
 	}
 	if g.gameOver {
-		drawText(s, 0, y+3, "Game over", tcell.StyleDefault.Foreground(tcell.ColorRed).Bold(true))
+		gameOverStr := fmt.Sprintf("Game over - Word was '%s'", string(g.answer))
+		drawText(s, 0, y+3, gameOverStr, tcell.StyleDefault.Foreground(tcell.ColorRed).Bold(true))
 	}
 
 	if g.won || g.gameOver {

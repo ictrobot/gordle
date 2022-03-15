@@ -1,6 +1,7 @@
 package wordlist
 
 import (
+	"github.com/ictrobot/gordle/internal/util"
 	"math/rand"
 	"strings"
 	"time"
@@ -24,18 +25,8 @@ func (w *WordList) GetAnswer(date time.Time) (int, string) {
 }
 
 func (w *WordList) IsAllowed(s string) bool {
-	s = strings.ToUpper(s)
-	for _, r := range w.Answers {
-		if s == strings.ToUpper(r) {
-			return true
-		}
-	}
-	for _, r := range w.Allowed {
-		if s == strings.ToUpper(r) {
-			return true
-		}
-	}
-	return false
+	s = strings.ToLower(s)
+	return util.SliceContains(w.Answers, s) || util.SliceContains(w.Allowed, s)
 }
 
 func (w *WordList) GetRandomDate() time.Time {

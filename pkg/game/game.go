@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"github.com/gdamore/tcell/v2"
+	"github.com/ictrobot/gordle/internal/util"
 	"github.com/ictrobot/gordle/pkg/wordlist"
 	"time"
 )
@@ -166,7 +167,7 @@ func (g *Game) updateKeyResults() {
 	for i, guessedLetter := range g.guesses[g.currentGuess] {
 		if g.answer[i] == guessedLetter {
 			g.keyResults[guessedLetter] = correct
-		} else if g.inAnswer(guessedLetter) {
+		} else if util.SliceContains(g.answer, guessedLetter) {
 			// don't overwrite correct
 			if g.keyResults[guessedLetter] < wrongPos {
 				g.keyResults[guessedLetter] = wrongPos
@@ -175,13 +176,4 @@ func (g *Game) updateKeyResults() {
 			g.keyResults[guessedLetter] = notIncluded
 		}
 	}
-}
-
-func (g *Game) inAnswer(r rune) bool {
-	for _, l := range g.answer {
-		if l == r {
-			return true
-		}
-	}
-	return false
 }

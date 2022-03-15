@@ -23,22 +23,20 @@ func main() {
 	dateString := pflag.String("date", "", "Date")
 	randomDate := pflag.Bool("random", false, "Random Date")
 	numGuesses := pflag.Int("guesses", 6, "Number of guesses")
+
+	answerFile := pflag.String("answer-file", "", "Custom word list: file to load answers from")
+	allowedFile := pflag.String("allowed-file", "", "Custom word list: file to load allowed guesses from (optional)")
+	startDateString := pflag.String("start-date", "", "Custom word list: start date of the custom word list (optional if --random is provided)")
 	pflag.Parse()
 
-	list := &wordlist.Original
-	date := time.Now().Truncate(24 * time.Hour)
+	list := getWordList(*answerFile, *allowedFile, *startDateString, *randomDate)
+	date := today()
 
 	if len(*dateString) > 0 && *randomDate {
 		fmt.Fprintf(os.Stderr, "Cannot supply both --date and --random\n")
 		os.Exit(1)
 	} else if len(*dateString) > 0 {
-		parsed, err := time.Parse("2006-01-02", *dateString)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
-		} else {
-			date = parsed
-		}
+		date = parseDate(*dateString)
 	} else if *randomDate {
 		date = list.GetRandomDate()
 	}
@@ -130,4 +128,48 @@ func (m *Gordle) initScreen() {
 	}
 
 	m.screen = s
+}
+
+func getWordList(answerFile string, allowedFile string, startDateString string, random bool) *wordlist.WordList {
+	if answerFile == "" {
+		if allowedFile != "" {
+			fmt.Fprintf(os.Stderr, "--answer-file must be provided with --allowed-file\n")
+			os.Exit(1)
+		}
+		if startDateString != "" {
+			fmt.Fprintf(os.Stderr, "--answer-file must be provided with --start-date\n")
+			os.Exit(1)
+		}
+
+		return wordlist.Original
+	}
+
+	startDate := today()
+	if startDateString != "" {
+		startDate = parseDate(startDateString)
+	} else if startDateString == "" && !random {
+		fmt.Fprintf(os.Stderr, "Either --start-date or --random must be provided with --answer-file\n")
+		os.Exit(1)
+	}
+
+	list, err := wordlist.FromFile(answerFile, allowedFile, startDate)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	return list
+}
+
+func parseDate(s string) time.Time {
+	parsed, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	return parsed
+}
+
+func today() time.Time {
+	return time.Now().Truncate(24 * time.Hour)
 }
